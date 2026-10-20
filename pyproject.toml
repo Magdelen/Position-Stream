@@ -1,0 +1,56 @@
+
+[project]
+name = "positionstream"
+version = "0.1.0"
+description = "A streaming data quality and portfolio position pipeline"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "uvicorn[standard]>=0.34,<1.0",
+    "pydantic>=2.10,<3.0",
+    "pydantic-settings>=2.7,<3.0",
+    "polars>=1.20,<2.0",
+    "pyarrow>=19,<25",
+    "confluent-kafka>=2.8,<3.0",
+    "psycopg[binary]>=3.2,<4.0",
+    "redis>=5.2,<7.0",
+    "structlog>=24.4,<26.0",
+    "prometheus-client>=0.21,<1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<10.0",
+    "pytest-cov>=6.0,<8.0",
+    "httpx>=0.28,<1.0",
+    "hypothesis>=6.120,<7.0",
+    "ruff>=0.9,<1.0",
+    "mypy>=1.14,<2.0",
+    "bandit>=1.7,<2.0",
+    "pip-audit>=2.7,<3.0",
+    "pre-commit>=4.0,<5.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/positionstream"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src/positionstream"]
