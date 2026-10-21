@@ -36,16 +36,12 @@ class RedisStorage:
         }
         self._client.set(key, json.dumps(value))
 
-    def get_latest_position(
-        self, portfolio_id: str, symbol: str
-    ) -> dict[str, Any] | None:
+    def get_latest_position(self, portfolio_id: str, symbol: str) -> dict[str, Any] | None:
         key = f"positionstream:position:{portfolio_id}:{symbol}"
         value = self._client.get(key)
         return json.loads(value) if value is not None else None
 
-    def increment_quality_counter(
-        self, counter_name: str, amount: int = 1
-    ) -> int:
+    def increment_quality_counter(self, counter_name: str, amount: int = 1) -> int:
         if not counter_name or ":" in counter_name:
             raise ValueError("counter_name must be non-empty and contain no ':'")
         key = f"positionstream:quality:{counter_name}"

@@ -1,4 +1,3 @@
-
 import pytest
 
 from positionstream.consumer import consumer as consumer_module

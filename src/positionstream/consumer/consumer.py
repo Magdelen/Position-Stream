@@ -146,9 +146,7 @@ class KafkaBatchConsumer:
                 errors = self._delivery_errors.copy()
 
                 if errors:
-                    raise RuntimeError(
-                        f"Output delivery failed; errors={errors}"
-                    )
+                    raise RuntimeError(f"Output delivery failed; errors={errors}")
                 return
 
             except (RuntimeError, KafkaException) as exc:
@@ -231,17 +229,9 @@ class KafkaBatchConsumer:
         except (json.JSONDecodeError, UnicodeDecodeError, TypeError):
             original = {"raw": repr(raw_value)}
 
-        correlation_id = (
-            original.get("correlation_id")
-            if isinstance(original, dict)
-            else None
-        )
+        correlation_id = original.get("correlation_id") if isinstance(original, dict) else None
         raw_key = message.key()
-        output_key = (
-            raw_key.decode("utf-8", errors="replace")
-            if raw_key
-            else "invalid-event"
-        )
+        output_key = raw_key.decode("utf-8", errors="replace") if raw_key else "invalid-event"
         payload = {
             "reason_code": reason_code,
             "error": error,
@@ -284,10 +274,7 @@ class KafkaBatchConsumer:
 
         with self._redis.pipeline(transaction=True) as pipeline:
             for position in positions:
-                key = (
-                    f"positionstream:position:{position['portfolio_id']}:"
-                    f"{position['symbol']}"
-                )
+                key = f"positionstream:position:{position['portfolio_id']}:{position['symbol']}"
                 value = {
                     "portfolio_id": position["portfolio_id"],
                     "symbol": position["symbol"],
@@ -329,10 +316,7 @@ class KafkaBatchConsumer:
         positions = storage.fetch_portfolio_positions()
         with self._redis.pipeline(transaction=True) as pipeline:
             for position in positions:
-                key = (
-                    f"positionstream:position:"
-                    f"{position['portfolio_id']}:{position['symbol']}"
-                )
+                key = f"positionstream:position:{position['portfolio_id']}:{position['symbol']}"
                 pipeline.set(key, json.dumps(position))
             pipeline.execute()
 

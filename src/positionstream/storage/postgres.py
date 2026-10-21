@@ -100,3 +100,16 @@ class PostgresStorage:
 
     def write_prices(self, events: Iterable[PriceRecord]) -> int:
         return self.write_batch(prices=events)["prices"]
+
+    def fetch_ohlc(self, symbol: str, limit: int = 100) -> list[dict[str, Any]]:
+        query = """
+            SELECT bucket, symbol, open, high, low, close,
+                   event_count::int AS event_count
+            FROM price_ohlc_1m
+            WHERE symbol = %s
+            ORDER BY bucket DESC
+            LIMIT %s
+        """
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            rows = connection.execute(query, (symbol.upper(), limit)).fetchall()
+        return [dict(row) for row in reversed(rows)]

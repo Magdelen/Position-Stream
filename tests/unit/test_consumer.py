@@ -20,7 +20,6 @@ class FakeMessage:
         return b"test-key"
 
 
-
 class FakeKafkaConsumer:
     def __init__(self, messages):
         self.messages = messages
