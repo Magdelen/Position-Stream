@@ -146,3 +146,28 @@ def test_empty_batch_does_not_commit():
 
     assert processed == 0
     assert instance._consumer.commit_calls == 0
+
+
+def test_process_batch_skips_duplicate_event():
+    from unittest.mock import MagicMock
+
+    consumer = KafkaBatchConsumer.__new__(KafkaBatchConsumer)
+    consumer._consumer = MagicMock()
+    consumer._consumer.consume.return_value = [
+        MagicMock(
+            error=MagicMock(return_value=None),
+            value=MagicMock(
+                return_value=(
+                    b'{"event_type":"trade","source":"vendor",'
+                    b'"payload":{"tradeRef":"duplicate-1","ticker":"AAPL",'
+                    b'"eventTime":"2026-10-21T10:00:00+00:00",'
+                    b'"shares":2,"price":150.0},'
+                    b'"correlation_id":"duplicate-test"}'
+                )
+            ),
+        )
+    ]
+    consumer.batch_size = 10
+    consumer._max_event_time = {}
+    consumer._redis = MagicMock()
+    consumer.allowed_lateness_seconds = 300

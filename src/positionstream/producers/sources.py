@@ -40,33 +40,36 @@ def transform_trade(source: str, payload: dict[str, Any]) -> TradeEvent:
     """Validate a source payload and normalize it to TradeEvent."""
 
     if source == "vendor":
-        raw = VendorTrade.model_validate(payload)
-        values = {
-            "trade_id": raw.tradeRef,
-            "symbol": raw.ticker,
-            "timestamp": raw.eventTime,
-            "quantity": raw.shares,
-            "price": raw.price,
-        }
-    elif source == "oms":
-        raw = OMSTrade.model_validate(payload)
-        values = {
-            "trade_id": raw.order_id,
-            "symbol": raw.instrument,
-            "timestamp": raw.executed_at,
-            "quantity": raw.filled_qty,
-            "price": raw.avg_price,
-        }
-    elif source == "custodian":
-        raw = CustodianTrade.model_validate(payload)
-        values = {
-            "trade_id": raw.executionId,
-            "symbol": raw.security,
-            "timestamp": raw.settlement_timestamp,
-            "quantity": raw.units,
-            "price": raw.exec_price,
-        }
-    else:
-        raise ValueError(f"Unsupported trade source: {source}")
+        vendor = VendorTrade.model_validate(payload)
+        return TradeEvent(
+            trade_id=vendor.tradeRef,
+            symbol=vendor.ticker,
+            timestamp=vendor.eventTime,
+            quantity=vendor.shares,
+            price=vendor.price,
+            source="vendor",
+        )
 
-    return TradeEvent(**values, source=source)
+    elif source == "oms":
+        oms = OMSTrade.model_validate(payload)
+        return TradeEvent(
+            trade_id=oms.order_id,
+            symbol=oms.instrument,
+            timestamp=oms.executed_at,
+            quantity=oms.filled_qty,
+            price=oms.avg_price,
+            source="oms",
+        )
+
+    elif source == "custodian":
+        custodian = CustodianTrade.model_validate(payload)
+        return TradeEvent(
+            trade_id=custodian.executionId,
+            symbol=custodian.security,
+            timestamp=custodian.settlement_timestamp,
+            quantity=custodian.units,
+            price=custodian.exec_price,
+            source="custodian",
+        )
+
+    raise ValueError(f"Unsupported trade source: {source}")

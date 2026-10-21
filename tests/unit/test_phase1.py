@@ -108,3 +108,70 @@ def test_generator_injects_required_defects() -> None:
 def test_invalid_source_is_rejected() -> None:
     with pytest.raises(ValueError, match="Unsupported trade source"):
         transform_trade("unknown", {})
+
+
+@pytest.mark.parametrize("symbol", [" aapl ", "msft", "GoOgL"])
+def test_trade_model_normalizes_symbol_variants(symbol: str) -> None:
+    trade = TradeEvent(
+        trade_id="TRD-1",
+        symbol=symbol,
+        timestamp="2026-01-05T14:30:00Z",
+        quantity=10,
+        price=200.50,
+        source="vendor",
+    )
+
+    assert trade.symbol == symbol.strip().upper()
+
+
+@pytest.mark.parametrize("symbol", ["", "TOOLONG", "BAD$", "é"])
+def test_trade_model_rejects_invalid_symbol_variants(symbol: str) -> None:
+    with pytest.raises(ValidationError):
+        TradeEvent(
+            trade_id="TRD-1",
+            symbol=symbol,
+            timestamp="2026-01-05T14:30:00Z",
+            quantity=10,
+            price=200.50,
+            source="vendor",
+        )
+
+
+@pytest.mark.parametrize("price", [0, -1, float("inf"), float("nan")])
+def test_trade_model_rejects_invalid_prices(price: float) -> None:
+    with pytest.raises(ValidationError):
+        TradeEvent(
+            trade_id="TRD-1",
+            symbol="AAPL",
+            timestamp="2026-01-05T14:30:00Z",
+            quantity=10,
+            price=price,
+            source="vendor",
+        )
+
+
+def test_trade_model_rejects_unexpected_fields() -> None:
+    with pytest.raises(ValidationError):
+        TradeEvent(
+            trade_id="TRD-1",
+            symbol="AAPL",
+            timestamp="2026-01-05T14:30:00Z",
+            quantity=10,
+            price=200.50,
+            source="vendor",
+            unexpected_field="not allowed",
+        )
+
+
+def test_transform_trade_rejects_invalid_vendor_payload() -> None:
+    with pytest.raises(ValidationError):
+        transform_trade(
+            "vendor",
+            {
+                "tradeRef": "TRD-1",
+                "ticker": "AAPL",
+                "eventTime": "2026-01-05T14:30:00Z",
+                "shares": 0,
+                "price": 200.50,
+            },
+        )

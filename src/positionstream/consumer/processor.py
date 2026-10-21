@@ -16,9 +16,11 @@ def process_raw_message(value: bytes | str) -> dict[str, Any]:
         payload = envelope["payload"]
 
         if event_type == "trade":
-            event = transform_trade(source, payload)
+            trade_event = transform_trade(source, payload)
+            normalized_event = trade_event.model_dump(mode="json")
         elif event_type == "price":
-            event = PriceEvent.model_validate(payload)
+            price_event = PriceEvent.model_validate(payload)
+            normalized_event = price_event.model_dump(mode="json")
         else:
             raise ValueError(f"Unsupported event type: {event_type}")
 
@@ -26,7 +28,7 @@ def process_raw_message(value: bytes | str) -> dict[str, Any]:
             "status": "clean",
             "event_type": event_type,
             "correlation_id": envelope.get("correlation_id"),
-            "event": event.model_dump(mode="json"),
+            "event": normalized_event,
         }
 
     except (

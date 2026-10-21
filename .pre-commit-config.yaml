@@ -1,0 +1,26 @@
+﻿repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff lint
+        entry: uv run ruff check
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: Ruff format check
+        entry: uv run ruff format --check
+        language: system
+        types: [python]
+
+      - id: mypy-core
+        name: Strict mypy on core modules
+        entry: uv run mypy src/positionstream/common/models.py src/positionstream/producers/sources.py src/positionstream/consumer/processor.py
+        language: system
+        pass_filenames: false
+
+      - id: pytest
+        name: Test suite
+        entry: uv run pytest -q
+        language: system
+        pass_filenames: false
