@@ -13,6 +13,8 @@ class TradeEvent(BaseModel):
     quantity: int = Field(gt=0)
     price: float = Field(gt=0, allow_inf_nan=False)
     source: Literal["vendor", "oms", "custodian"]
+    portfolio_id: str | None = Field(default=None, min_length=1)
+    side: Literal["BUY", "SELL"] | None = None
 
     @field_validator("symbol")
     @classmethod
